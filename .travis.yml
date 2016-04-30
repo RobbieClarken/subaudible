@@ -2,8 +2,14 @@ language: python
 python:
   - 3.5
 sudo: false
+env:
+  global:
+    - WHEELHOST="travis-wheels.scikit-image.org"
+    - WHEELHOUSE="http://travis-wheels.scikit-image.org/"
+    - DEPENDS="numpy scipy"
 install:
   - pip install -r requirements-dev.txt
+  - pip install --no-index --trusted-host $WHEELHOST --find-links $WHEELHOUSE $DEPENDS
   - pip install .
 script:
   - py.test
