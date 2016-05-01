@@ -19,3 +19,18 @@ def audio_search(source, sample, sample_rate):
     match_time = (match_idx - len(sample)) / sample_rate
     strength = correlation[match_idx] / np.sum(correlation)
     return match_time, strength
+
+
+def caption_for_time_offset(captions, offset):
+    """
+    Returns the caption for a given time offset.
+
+    Args:
+        captions: A list of caption dicts.
+        offset (float): Time offset.
+
+    Returns: The caption dict where offset lies between start and end. If no
+        caption fits these requirements, returns None.
+
+    """
+    return next((c for c in captions if c['start'] <= offset <= c['end']), None)

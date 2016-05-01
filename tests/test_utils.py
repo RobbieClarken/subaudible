@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from scipy.io import wavfile
 
-from subaudible.utils import audio_search
+from subaudible.utils import audio_search, caption_for_time_offset
 
 
 SAMPLE_RATE = 2000
@@ -34,3 +34,21 @@ def test_strength_should_be_invariant_to_intensity(source_audio, sample_audio):
     _, strength1 = audio_search(source_audio, sample_audio, SAMPLE_RATE)
     _, strength2 = audio_search(source_audio, weak_sample_audio, SAMPLE_RATE)
     assert strength1 == strength2
+
+
+def test_caption_for_time_offset():
+    captions = [
+        {'start': 1, 'end': 3, 'text': 'First caption'},
+        {'start': 5, 'end': 10, 'text': 'Second caption'},
+    ]
+    caption = caption_for_time_offset(captions, 5)
+    assert caption['text'] == 'Second caption'
+
+
+def test_caption_for_time_offset_returns_none_if_offset_is_inbetween():
+    captions = [
+        {'start': 1, 'end': 3, 'text': 'First caption'},
+        {'start': 5, 'end': 10, 'text': 'Second caption'},
+    ]
+    caption = caption_for_time_offset(captions, 4)
+    assert caption is None
