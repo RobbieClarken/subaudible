@@ -1,5 +1,6 @@
 from scipy import signal
 import numpy as np
+import sounddevice
 
 
 def audio_search(source, sample, sample_rate):
@@ -34,3 +35,23 @@ def caption_for_time_offset(captions, offset):
 
     """
     return next((c for c in captions if c['start'] <= offset <= c['end']), None)
+
+
+def audio_sample_generator(duration=10, sample_rate=2000):
+    """
+    Yields a series of audio recordings from the system microphone.
+
+    Args:
+        duration (float): Time in seconds for each recording.
+        sample_rate (float): Sample rate in Hz.
+
+    Yields:
+        numpy array: 1-d numpy array of audio data as int16 samples.
+
+    """
+    samples = int(duration * sample_rate)
+    while True:
+        recording = sounddevice.rec(samples, samplerate=sample_rate,
+                                    channels=1, dtype='int16')
+        sounddevice.wait()
+        yield recording[:, 0]

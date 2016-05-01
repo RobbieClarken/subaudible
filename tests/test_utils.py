@@ -1,9 +1,12 @@
 from pathlib import Path
+from unittest.mock import patch, call
 
 import pytest
 from scipy.io import wavfile
+import numpy as np
 
-from subaudible.utils import audio_search, caption_for_time_offset
+from subaudible.utils import (audio_search, caption_for_time_offset,
+                              audio_sample_generator)
 
 
 SAMPLE_RATE = 2000
@@ -52,3 +55,14 @@ def test_caption_for_time_offset_returns_none_if_offset_is_inbetween():
     ]
     caption = caption_for_time_offset(captions, 4)
     assert caption is None
+
+
+@patch('subaudible.utils.sounddevice')
+def test_audio_sample_generator(sounddevice_mock):
+    sounddevice_mock.rec.return_value = np.array([[1], [2], [3]])
+    gen = audio_sample_generator(duration=5, sample_rate=4000)
+    sample = next(gen)
+    assert np.array_equal(sample, np.array([1, 2, 3]))
+    assert sounddevice_mock.rec.call_args == call(20000, samplerate=4000,
+                                                  channels=1, dtype='int16')
+    assert sounddevice_mock.wait.called is True
