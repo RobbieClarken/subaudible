@@ -6,7 +6,8 @@ from scipy.io import wavfile
 import numpy as np
 
 from subaudible.utils import (audio_search, caption_for_time_offset,
-                              audio_sample_generator)
+                              audio_sample_generator, hash_file,
+                              convert_to_wav)
 
 
 SAMPLE_RATE = 2000
@@ -66,3 +67,30 @@ def test_audio_sample_generator(sounddevice_mock):
     assert sounddevice_mock.rec.call_args == call(20000, samplerate=4000,
                                                   channels=1, dtype='int16')
     assert sounddevice_mock.wait.called is True
+
+
+def test_hash_file():
+    path = Path(__file__).parent / 'data' / 'source.aac'
+    with path.open('rb') as file:
+        hash_digest = hash_file(file)
+    assert hash_digest == '2b8a282ae880dcbd4b2263d710f9d345'
+
+
+@patch('subprocess.run')
+def test_convert_to_wav(run_mock):
+    in_path = Path(__file__).parent / 'data' / 'source.aac'
+    filename = '2b8a282ae880dcbd4b2263d710f9d345_3000.wav'
+    out_path = Path.home() / '.cache' / 'subaudible' / filename
+    result = convert_to_wav(in_path, sample_rate=3000)
+    assert run_mock.call_args == call([
+        'ffmpeg', '-i', str(in_path), '-ac', '1', '-ar', '3000', str(out_path)
+    ])
+    assert result == out_path
+
+
+@patch('subprocess.run')
+def test_convert_to_wav_skips_conversion_if_file_exists(run_mock, monkeypatch):
+    monkeypatch.setattr('pathlib.Path.exists', lambda *args, **kwargs: True)
+    in_path = Path(__file__).parent / 'data' / 'source.aac'
+    convert_to_wav(in_path)
+    assert run_mock.called is False
