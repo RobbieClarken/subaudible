@@ -12,7 +12,7 @@ def parse_srt(line_iter):
         dict: Caption dicts with `start`, `end` and `text` keys.
 
     """
-    line_iter = iter(line_iter)
+    line_iter = iter(line.rstrip('\r\n') for line in line_iter)
     while True:
         next(line_iter)  # Skip counter
         start, end = parse_time_line(next(line_iter))
